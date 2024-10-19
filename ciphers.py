@@ -1,6 +1,8 @@
+import cmd
+
 # Define the standard alphabet
 alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-m = len(alphabet)
+m = len(alphabet)  # Size of the alphabet (26 for English)
 
 class SubstitutionCipher:
     def __init__(self, cipher_type, a=None, b=None, shift=None):
@@ -56,7 +58,7 @@ class SubstitutionCipher:
             if char in self.substitution_dict:
                 result += self.substitution_dict[char]
             else:
-                result += char  
+                result += char  # Non-alphabet characters remain unchanged
         return result
 
     def decode(self, text):
@@ -66,49 +68,80 @@ class SubstitutionCipher:
             if char in self.reverse_substitution_dict:
                 result += self.reverse_substitution_dict[char]
             else:
-                result += char  
+                result += char  # Non-alphabet characters remain unchanged
         return result
 
+class CipherCmd(cmd.Cmd):
+    intro = "Welcome to the cipher CLI! Type 'help' or '?' to list commands.\n"
+    prompt = "(cipher) "
+    
+    def __init__(self):
+        super().__init__()
+        self.cipher = None
+        self.plaintext = "AFFINE CIPHER EXAMPLE"  # Default test plaintext
 
-def read_plaintext_from_file(filename):
-    try:
-        with open(filename, "r") as file:
-            return file.read().upper()
-    except FileNotFoundError:
-        print(f"Error: The file '{filename}' was not found.")
-        return None
+    def do_set_cipher(self, arg):
+        """Set the cipher type and its parameters. Usage: set_cipher affine a=5 b=8 | set_cipher caesar shift=3"""
+        args = arg.split()
+        if len(args) == 0:
+            print("Usage: set_cipher <affine/caesar> [params]")
+            return
 
+        cipher_type = args[0].lower()
+
+        if cipher_type == "affine":
+            try:
+                a = int(args[1].split('=')[1])
+                b = int(args[2].split('=')[1])
+                self.cipher = SubstitutionCipher(cipher_type="affine", a=a, b=b)
+                print(f"Affine cipher set with a={a}, b={b}")
+            except (IndexError, ValueError):
+                print("Usage for affine cipher: set_cipher affine a=<value> b=<value>")
+        elif cipher_type == "caesar":
+            try:
+                shift = int(args[1].split('=')[1])
+                self.cipher = SubstitutionCipher(cipher_type="caesar", shift=shift)
+                print(f"Caesar cipher set with shift={shift}")
+            except (IndexError, ValueError):
+                print("Usage for caesar cipher: set_cipher caesar shift=<value>")
+        else:
+            print(f"Unsupported cipher type: {cipher_type}")
+
+    def do_set_plaintext(self, arg):
+        """Set the plaintext for encryption/decryption. Usage: set_plaintext <text>"""
+        self.plaintext = arg.upper()
+        print(f"Plaintext set to: {self.plaintext}")
+
+    def do_load_plaintext(self, filename):
+        """Load plaintext from a file. Usage: load_plaintext <filename>"""
+        try:
+            with open(filename.strip(), "r") as file:
+                self.plaintext = file.read().upper()
+                print(f"Plaintext loaded from {filename}:")
+                print(self.plaintext)
+        except FileNotFoundError:
+            print(f"Error: File '{filename}' not found.")
+
+    def do_encrypt(self, arg):
+        """Encrypt the current plaintext."""
+        if self.cipher is None:
+            print("Please set a cipher first using the 'set_cipher' command.")
+        else:
+            encrypted_text = self.cipher.encode(self.plaintext)
+            print(f"Encrypted Text: {encrypted_text}")
+
+    def do_decrypt(self, arg):
+        """Decrypt the current ciphertext."""
+        if self.cipher is None:
+            print("Please set a cipher first using the 'set_cipher' command.")
+        else:
+            decrypted_text = self.cipher.decode(arg.upper())
+            print(f"Decrypted Text: {decrypted_text}")
+
+    def do_quit(self, arg):
+        """Quit the cipher CLI."""
+        print("Goodbye!")
+        return True
 
 if __name__ == "__main__":
-    default_plaintext = "AFFINE CIPHER EXAMPLE"
-
-    user_choice = input("Would you like to input plaintext from a file? (y/n): ").strip().lower()
-    if user_choice == 'y':
-        filename = input("Enter the filename: ").strip()
-        plaintext = read_plaintext_from_file(filename)
-        if plaintext is None:
-            print("Using default plaintext for testing.")
-            plaintext = default_plaintext
-    else:
-        plaintext = default_plaintext
-
-    print(f"Plaintext: {plaintext}")
-
-    cipher_type = input("Choose cipher type (affine/caesar): ").strip().lower()
-
-    if cipher_type == "affine":
-        a = int(input("Enter multiplier 'a' for affine cipher (must be coprime with 26): "))
-        b = int(input("Enter shift 'b' for affine cipher: "))
-        cipher = SubstitutionCipher(cipher_type="affine", a=a, b=b)
-    elif cipher_type == "caesar":
-        shift = int(input("Enter shift for Caesar cipher: "))
-        cipher = SubstitutionCipher(cipher_type="caesar", shift=shift)
-    else:
-        print("Invalid cipher type. Exiting.")
-        exit(1)
-
-    encrypted_text = cipher.encode(plaintext)
-    print(f"Encrypted Text: {encrypted_text}")
-
-    decrypted_text = cipher.decode(encrypted_text)
-    print(f"Decrypted Text: {decrypted_text}")
+    CipherCmd().cmdloop()

@@ -2,7 +2,10 @@ import cmd
 
 # Define the standard alphabet
 alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-m = len(alphabet)  # Size of the alphabet (26 for English)
+m = len(alphabet)
+
+ver=1.8
+print(ver)
 
 class SubstitutionCipher:
     def __init__(self, cipher_type, a=None, b=None, shift=None):
@@ -58,7 +61,7 @@ class SubstitutionCipher:
             if char in self.substitution_dict:
                 result += self.substitution_dict[char]
             else:
-                result += char  # Non-alphabet characters remain unchanged
+                result += char 
         return result
 
     def decode(self, text):
@@ -68,7 +71,7 @@ class SubstitutionCipher:
             if char in self.reverse_substitution_dict:
                 result += self.reverse_substitution_dict[char]
             else:
-                result += char  # Non-alphabet characters remain unchanged
+                result += char 
         return result
 
 class CipherCmd(cmd.Cmd):
@@ -78,7 +81,7 @@ class CipherCmd(cmd.Cmd):
     def __init__(self):
         super().__init__()
         self.cipher = None
-        self.plaintext = "AFFINE CIPHER EXAMPLE"  # Default test plaintext
+        self.plaintext = "DEFAULT PLAIN TEXT"
 
     def do_set_cipher(self, arg):
         """Set the cipher type and its parameters. Usage: set_cipher affine a=5 b=8 | set_cipher caesar shift=3"""
@@ -138,6 +141,52 @@ class CipherCmd(cmd.Cmd):
             decrypted_text = self.cipher.decode(arg.upper())
             print(f"Decrypted Text: {decrypted_text}")
 
+    def do_try_decrypt_sequence(self, arg):
+        """
+        Try multiple decryption parameters for the same cipher type.
+        For Caesar: try_decrypt_sequence shift start=0 end=25
+        For Affine: try_decrypt_sequence affine a_start=1 a_end=5 b_start=0 b_end=25
+        """
+        args = arg.split()
+        if len(args) == 0:
+            print("Usage: try_decrypt_sequence <affine/caesar> [params]")
+            return
+        
+        cipher_type = args[0].lower()
+
+        if cipher_type == "caesar":
+            try:
+                start = int(args[1].split('=')[1])
+                end = int(args[2].split('=')[1])
+                ciphertext = input("Enter the ciphertext to decrypt: ").upper()
+                for shift in range(start, end + 1):
+                    temp_cipher = SubstitutionCipher(cipher_type="caesar", shift=shift)
+                    decrypted_text = temp_cipher.decode(ciphertext)
+                    print(f"Shift {shift}: {decrypted_text}")
+            except (IndexError, ValueError):
+                print("Usage for Caesar cipher: try_decrypt_sequence caesar start=<value> end=<value>")
+
+        elif cipher_type == "affine":
+            try:
+                a_start = int(args[1].split('=')[1])
+                a_end = int(args[2].split('=')[1])
+                b_start = int(args[3].split('=')[1])
+                b_end = int(args[4].split('=')[1])
+                ciphertext = input("Enter the ciphertext to decrypt: ").upper()
+                for a in range(a_start, a_end + 1):
+                    for b in range(b_start, b_end + 1):
+                        try:
+                            temp_cipher = SubstitutionCipher(cipher_type="affine", a=a, b=b)
+                            decrypted_text = temp_cipher.decode(ciphertext)
+                            print(f"a={a}, b={b}: {decrypted_text}")
+                        except ValueError:
+                            # Skip invalid affine configurations where 'a' is not coprime with 26
+                            continue
+            except (IndexError, ValueError):
+                print("Usage for Affine cipher: try_decrypt_sequence affine a_start=<value> a_end=<value> b_start=<value> b_end=<value>")
+                
+        return decrypted_text or None
+    
     def do_quit(self, arg):
         """Quit the cipher CLI."""
         print("Goodbye!")

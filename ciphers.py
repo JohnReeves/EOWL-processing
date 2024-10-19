@@ -1,71 +1,52 @@
 alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-m = len(alphabet)
-
-# calculate the modular inverse of 'a' modulo 'm' 
-def mod_inverse(a, m):
-    for i in range(1, m):
-        if (a * i) % m == 1:
-            return i
-    return None
+m = len(alphabet) 
 
 # --------------------------------
-# Affine Cipher Functions
+# encode and decode using a substitution alphabet
 # --------------------------------
-def affine_encrypt(text, a, b):
+def encode(text, substitution_alphabet):
     result = ""
     for char in text:
         if char in alphabet:
-            x = alphabet.index(char)
-            encrypted_char = (a * x + b) % m
-            result += alphabet[encrypted_char]
+            index = alphabet.index(char)
+            result += substitution_alphabet[index]
         else:
-            result += char
+            result += char  
     return result
 
-def affine_decrypt(text, a, b):
+def decode(text, substitution_alphabet):
     result = ""
-    a_inv = mod_inverse(a, m)
-    if a_inv is None:
-        raise ValueError(f"No modular inverse for a={a}, m={m}")
-
     for char in text:
-        if char in alphabet:
-            y = alphabet.index(char)
-            decrypted_char = (a_inv * (y - b)) % m
-            result += alphabet[decrypted_char]
+        if char in substitution_alphabet:
+            index = substitution_alphabet.index(char)
+            result += alphabet[index]
         else:
-            result += char
+            result += char  
     return result
 
 # --------------------------------
-# Caesar Cipher Functions
+# Functions to generate substitution alphabets
 # --------------------------------
-def caesar_encrypt(text, shift):
-    result = ""
-    for char in text:
-        if char in alphabet:
-            x = alphabet.index(char)
-            encrypted_char = (x + shift) % m
-            result += alphabet[encrypted_char]
-        else:
-            result += char
-    return result
+def generate_affine_alphabet(a, b):
+    substitution_alphabet = ""
+    for i in range(m):
+        substitution_alphabet += alphabet[(a * i + b) % m]
+    return substitution_alphabet
 
-def caesar_decrypt(text, shift):
-    result = ""
-    for char in text:
-        if char in alphabet:
-            y = alphabet.index(char)
-            decrypted_char = (y - shift) % m
-            result += alphabet[decrypted_char]
-        else:
-            result += char
-    return result
+def generate_caesar_alphabet(shift):
+    substitution_alphabet = ""
+    for i in range(m):
+        substitution_alphabet += alphabet[(i + shift) % m]
+    return substitution_alphabet
+
+# returns a shifting key!
+def generate_vigenere_alphabet(key):
+    return key 
 
 # --------------------------------
 # Vigenère Cipher Functions
 # --------------------------------
-def vigenere_encrypt(text, key):
+def vigenere_encode(text, key):
     result = ""
     key_index = 0
 
@@ -73,14 +54,14 @@ def vigenere_encrypt(text, key):
         if char in alphabet:
             x = alphabet.index(char)
             k = alphabet.index(key[key_index % len(key)])
-            encrypted_char = (x + k) % m
-            result += alphabet[encrypted_char]
+            encrypted_char = alphabet[(x + k) % m]
+            result += encrypted_char
             key_index += 1
         else:
             result += char
     return result
 
-def vigenere_decrypt(text, key):
+def vigenere_decode(text, key):
     result = ""
     key_index = 0
 
@@ -88,35 +69,39 @@ def vigenere_decrypt(text, key):
         if char in alphabet:
             y = alphabet.index(char)
             k = alphabet.index(key[key_index % len(key)])
-            decrypted_char = (y - k) % m
-            result += alphabet[decrypted_char]
+            decrypted_char = alphabet[(y - k) % m]
+            result += decrypted_char
             key_index += 1
         else:
             result += char
     return result
 
-
+# --------------------------------
+# Example usage
+# --------------------------------
 if __name__ == "__main__":
     plaintext = "AFFINE CIPHER EXAMPLE"
     a = 5  # Must be coprime with 26
     b = 8  # Shift value for affine cipher
     shift = 3  # Shift value for Caesar cipher
-    key = "KEY"  # Key for Vigenère cipher
+    key = "KEY"  # Key for Vigenère cipher (must be uppercase)
 
     # Affine Cipher
-    affine_encrypted = affine_encrypt(plaintext, a, b)
-    affine_decrypted = affine_decrypt(affine_encrypted, a, b)
+    affine_alphabet = generate_affine_alphabet(a, b)
+    affine_encrypted = encode(plaintext, affine_alphabet)
+    affine_decrypted = decode(affine_encrypted, affine_alphabet)
     print("Affine Cipher Encrypted:", affine_encrypted)
     print("Affine Cipher Decrypted:", affine_decrypted)
 
     # Caesar Cipher
-    caesar_encrypted = caesar_encrypt(plaintext, shift)
-    caesar_decrypted = caesar_decrypt(caesar_encrypted, shift)
+    caesar_alphabet = generate_caesar_alphabet(shift)
+    caesar_encrypted = encode(plaintext, caesar_alphabet)
+    caesar_decrypted = decode(caesar_encrypted, caesar_alphabet)
     print("Caesar Cipher Encrypted:", caesar_encrypted)
     print("Caesar Cipher Decrypted:", caesar_decrypted)
 
-    # Vigenère Cipher
-    vigenere_encrypted = vigenere_encrypt(plaintext, key)
-    vigenere_decrypted = vigenere_decrypt(vigenere_encrypted, key)
+    # Vigenère Cipher (handled dynamically with key)
+    vigenere_encrypted = vigenere_encode(plaintext, key)
+    vigenere_decrypted = vigenere_decode(vigenere_encrypted, key)
     print("Vigenère Cipher Encrypted:", vigenere_encrypted)
     print("Vigenère Cipher Decrypted:", vigenere_decrypted)

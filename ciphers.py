@@ -1,7 +1,6 @@
-#
-ver=1.3
-print(ver)
-
+# --------------------------------
+# Substitution alphabets using dict()
+# --------------------------------
 alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 m = len(alphabet) 
 
@@ -21,14 +20,6 @@ def generate_caesar_alphabet(shift):
     substitution_alphabet = ""
     for i in range(m):
         substitution_alphabet += alphabet[(i + shift) % m]
-    return substitution_alphabet
-
-def generate_vigenere_alphabet(key):
-    substitution_alphabet = ""
-    key = key.upper() 
-    for i in range(m):
-        shift = alphabet.index(key[i % len(key)]) 
-        substitution_alphabet += alphabet[(i + shift) % m] 
     return substitution_alphabet
 
 # --------------------------------
@@ -76,12 +67,3 @@ if __name__ == "__main__":
     caesar_decrypted = decode(caesar_encrypted, caesar_reverse_substitution_dict)
     print("Caesar Cipher Encrypted:", caesar_encrypted)
     print("Caesar Cipher Decrypted:", caesar_decrypted)
-
-    # Vigenère Cipher
-    vigenere_alphabet = generate_vigenere_alphabet(key)
-    vigenere_substitution_dict = generate_substitution_dict(vigenere_alphabet)
-    vigenere_reverse_substitution_dict = generate_reverse_substitution_dict(vigenere_alphabet)
-    vigenere_encrypted = encode(plaintext, vigenere_substitution_dict)
-    vigenere_decrypted = decode(vigenere_encrypted, vigenere_reverse_substitution_dict)
-    print("Vigenère Cipher Encrypted:", vigenere_encrypted)
-    print("Vigenère Cipher Decrypted:", vigenere_decrypted)

@@ -1,88 +1,65 @@
-import zipfile
-import io
+import string
 
-class NameChecker:
-    def __init__(self, names_file_path):
-        self.names_file_path = names_file_path
-        self.names = self.load_names()
+def load_dictionary(file_path):
+    """return a word dictionary as a set for easy searching"""
+    import random
+    with open(file_path, 'r') as file:
+        valid_words = set(word.strip().lower() for word in file)
+        print(next(iter(valid_words)))
+    return valid_words
 
-    def load_names(self):
-        try:
-            with open(self.names_file_path, 'r') as f:
-                return [line.strip() for line in f.readlines()]
-        except FileNotFoundError:
-            print(f"Error: The file '{self.names_file_path}' was not found.")
-            return []
-        except Exception as e:
-            print(f"An error occurred: {e}")
-            return []
+def load_special_words(file_path=None):
+    if file_path:
+        with open(file_path, 'r') as file:
+            special_words = set(word.strip().lower() for word in file)
+    else:
+        special_words = {"horsley", "ada", "lovelace", "charles", "babbage", "palmerston"}
+    return special_words
 
-    def check_name(self, name):
-        if name in self.names:
-            return True
+def word_segmentation_with_special_words(text, valid_words, special_words):
+    """
+    Segment text into valid words using a dynamic programming approach, prioritizing special words.
+    :param text: Continuous text with no spaces.
+    :param valid_words: Set of valid English words.
+    :param special_words: Set of special words to prioritize.
+    :return: Best segmentation as a list of words.
+    """
+    cleaned_text = ''.join(char for char in text.lower() if char in string.ascii_lowercase)
+    n = len(cleaned_text)
+    
+    dp = [None] * (n + 1)
+    dp[0] = [] 
 
+    for i in range(1, n + 1):
+        for j in range(i):
+            word = cleaned_text[j:i]
+            # Prioritize special words
+            if word in special_words and dp[j] is not None:
+                if dp[i] is None or len(dp[j]) + 1 < len(dp[i]):
+                    dp[i] = dp[j] + [word]
+            # Then check the general valid words list
+            elif word in valid_words and dp[j] is not None:
+                if dp[i] is None or len(dp[j]) + 1 < len(dp[i]):
+                    dp[i] = dp[j] + [word]
 
-class EOWLChecker:
-    def __init__(self, zip_file_path):
-        self.zip_file_path = zip_file_path
-        self.zip_file = None
-        self.load_zip_file()
+    # dp[n] is None when there is no valid segmentation
+    return dp[n] if dp[n] is not None else []
 
-    def load_zip_file(self):
-        try:
-            self.zip_file = zipfile.ZipFile(self.zip_file_path, 'r')
-        except zipfile.BadZipFile:
-            print("Error: The file is not a valid zip file.")
-        except Exception as e:
-            print(f"An error occurred: {e}")
+# Load text from file (without spaces or punctuation)
+def load_text_from_file(file_path):
+    with open(file_path, 'r') as file:
+        return file.read().replace("\n", "").replace("\r", "").strip()
 
-    def is_valid_word(self, word):
-        if not self.zip_file:
-            print("ZIP file could not be opened.")
-            return False
-
-        word = word.lower()
-        first_letter = word[0].upper()
-        file_name = f"{first_letter} Words.txt"
-
-        if file_name not in self.zip_file.namelist():
-            print(f"No file found for the letter '{first_letter}'.")
-            return False
-
-        try:
-            with self.zip_file.open(file_name) as word_list_file:
-                words = set(io.TextIOWrapper(word_list_file).read().splitlines())
-                return word in words
-        except Exception as e:
-            print(f"An error occurred: {e}")
-            return False
-
-    def close_zip_file(self):
-        if self.zip_file:
-            self.zip_file.close()
-
-# Example usage of the EOWLChecker class
 if __name__ == "__main__":
+    valid_words = load_dictionary("/usr/share/dict/words") 
+    special_words = load_special_words("special_words.txt") 
+    sample_text = load_text_from_file("sample_text.txt")
 
-    wc = EOWLChecker('EOWL.zip')
-    words = ["widget", "zoological", "aardvark", "xerxes", "athena",
-             "grommet", "sprocket", "piston", "ada", "lovelace"]
+    print(f"Original text:\n{sample_text}")
 
-    for input_word in words:
-        if wc.is_valid_word(input_word):
-            print(f"'{input_word}' is a valid word in the EOWL.")
-        else:
-            print(f"'{input_word}' is not a valid word in the EOWL.")
-
-    wc.close_zip_file()
-
-
-    nc = NameChecker('special_words.txt')
-    names = ["john", "katia", "kate", "ada", "babbage", 
-             "harry", "horsley", "horsefield", "harry", "brabowski"]
-
-    for name in names:
-        if nc.check_name(name):
-            print(f"'{name}' is in the special words list")
-        else:
-            print(f"'{name}' is not in the special words list")
+    segmented_words = word_segmentation_with_special_words(sample_text, valid_words, special_words)
+    if segmented_words:
+        print("Segmented text:\n", * segmented_words)
+        print(f"Total valid words found (with special words priority): {len(segmented_words)}")
+    else:
+        print("No valid segmentation found.")

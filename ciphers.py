@@ -108,50 +108,32 @@ class CipherCmd(cmd.Cmd):
         else:
             print("No text provided or loaded. Use 'decode <message>' or 'load_file <file_path>'.")
 
-#     def try_decrypt_sequence(self, arg):
-#         """
-#         Try multiple decryption parameters for the same cipher type.
-#         For Caesar: try_decrypt_sequence shift start=0 end=25
-#         For Affine: try_decrypt_sequence affine a_start=1 a_end=5 b_start=0 b_end=25
-#         """
-#         args = arg.split()
-#         if len(args) == 0:
-#             print("Usage: try_decrypt_sequence <affine/caesar> [params]")
-#             return
+    def do_try_decrypt_sequence(self, arg):
+        """
+        Try a sequence of decryption parameters: 
+        For Caesar: try_decrypt_sequence b=n,b=m,...
+        For Affine: try_decrypt_sequence a=n b=m,a=o b=p,...
+        """
+        param_sets = arg.split(',')
+        if len(param_set) == 0:
+            print("Usage: try_decrypt_sequence <caesar/affine> [params]")
+            return
         
-#         cipher_type = args[0].lower()
+        for param_set in param_sets:
+            params = {k: int(v) for k, v in (x.split('=') for x in param_set.split())}
+            cipher_type = params.get('cipher_type', 'caesar')
+            if cipher_type == 'caesar':
+                self.cipher = SubstitutionCipher(cipher_type='caesar', b=params.get('b', 3))
+            elif cipher_type == 'affine':
+                self.cipher = SubstitutionCipher(cipher_type='affine', a=params.get('a', 5), b=params.get('b', 8))
+            else:
+                print(f"Unknown cipher type: {cipher_type}")
+                continue
 
-#         if cipher_type == "caesar":
-#             try:
-#                 start = int(args[1].split('=')[1])
-#                 end = int(args[2].split('=')[1])
-#                 ciphertext = input("Enter the ciphertext to decrypt: ").upper()
-#                 for shift in range(start, end + 1):
-#                     temp_cipher = SubstitutionCipher(cipher_type="caesar", shift=shift)
-#                     decrypted_text = temp_cipher.decode(ciphertext)
-#                     print(f"Shift {shift}: {decrypted_text}")
-#             except (IndexError, ValueError):
-#                 print("Usage for Caesar cipher: try_decrypt_sequence caesar start=<value> end=<value>")
+            print(f"Attempting decryption with parameters: {params}")
+            decoded = self.cipher.decode(self.loaded_text)
+            print(f"Decrypted text with parameters {params}: {decoded}")
 
-#         elif cipher_type == "affine":
-#             try:
-#                 a_start = int(args[1].split('=')[1])
-#                 a_end = int(args[2].split('=')[1])
-#                 b_start = int(args[3].split('=')[1])
-#                 b_end = int(args[4].split('=')[1])
-#                 ciphertext = input("Enter the ciphertext to decrypt: ").upper()
-#                 for a in range(a_start, a_end + 1):
-#                     for b in range(b_start, b_end + 1):
-#                         try:
-#                             temp_cipher = SubstitutionCipher(cipher_type="affine", a=a, b=b)
-#                             decrypted_text = temp_cipher.decode(ciphertext)
-#                             print(f"a={a}, b={b}: {decrypted_text}")
-#                         except ValueError:
-#                             # Skip invalid affine configurations where 'a' is not coprime with 26
-#                             continue
-#             except (IndexError, ValueError):
-#                 print("Usage for Affine cipher: try_decrypt_sequence affine a_start=<value> a_end=<value> b_start=<value> b_end=<value>")
-    
     def do_segment(self, arg):
         "Segment text: segment <file_path or loaded text>"
         text = self.loaded_text or arg

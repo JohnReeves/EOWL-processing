@@ -1,6 +1,27 @@
 import zipfile
 import io
 
+class NameChecker:
+    def __init__(self, names_file_path):
+        self.names_file_path = names_file_path
+        self.names = self.load_names()
+
+    def load_names(self):
+        try:
+            with open(self.names_file_path, 'r') as f:
+                return [line.strip() for line in f.readlines()]
+        except FileNotFoundError:
+            print(f"Error: The file '{self.names_file_path}' was not found.")
+            return []
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return []
+
+    def check_name(self, name):
+        if name in self.names:
+            return True
+
+
 class EOWLChecker:
     def __init__(self, zip_file_path):
         self.zip_file_path = zip_file_path
@@ -40,16 +61,28 @@ class EOWLChecker:
         if self.zip_file:
             self.zip_file.close()
 
+# Example usage of the EOWLChecker class
 if __name__ == "__main__":
-    eowl_checker = EOWLChecker('EOWL.zip')
 
+    wc = EOWLChecker('EOWL.zip')
     words = ["widget", "zoological", "aardvark", "xerxes", "athena",
              "grommet", "sprocket", "piston", "ada", "lovelace"]
 
     for input_word in words:
-        if eowl_checker.is_valid_word(input_word):
+        if wc.is_valid_word(input_word):
             print(f"'{input_word}' is a valid word in the EOWL.")
         else:
             print(f"'{input_word}' is not a valid word in the EOWL.")
 
-    eowl_checker.close_zip_file()
+    wc.close_zip_file()
+
+
+    nc = NameChecker('special_words.txt')
+    names = ["john", "katia", "kate", "ada", "babbage", 
+             "harry", "horsley", "horsefield", "harry", "brabowski"]
+
+    for name in names:
+        if nc.check_name(name):
+            print(f"'{name}' is in the special words list")
+        else:
+            print(f"'{name}' is not in the special words list")

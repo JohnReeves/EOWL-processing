@@ -61,11 +61,11 @@ if __name__ == "__main__":
     segmenter = WordSegmenter(general_dictionary, special_words)
 
     sample_text = segmenter.load_text_from_file("sample_text.txt") 
-    print("Original Text:\n{sample_text}")
+    print(f"Original Text:\n{sample_text}\n")
 
     segmented_words = segmenter.word_segmentation(sample_text)
     if segmented_words:
         print("Separated text:", * segmented_words)
-        print(f"Number of valid words: {len(segmented_words)}")
+        print(f"\nNumber of valid words: {len(segmented_words)}")
     else:
         print("No valid segmentation found.")

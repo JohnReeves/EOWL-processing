@@ -20,17 +20,23 @@ warne
 cypher
 cyphers
 cyphering
+code
+codes
+coding
 cause
 caused
 causes
+be
+able
+to
 help
 helps
 helped
 sorry 
-for the
+for
 trouble
 was
-i was not
+not
 seem
 seems
 seemed
@@ -42,8 +48,8 @@ includes
 included
 find
 finds
+found
 sketch
-be
 reason
 remove
 removed
@@ -60,3 +66,31 @@ found
 bullet
 erin
 new york
+the
+they
+them
+message
+messages
+messaging
+sent
+you
+your
+yours
+interest
+interests
+interesting
+read
+reads
+reading
+this
+that
+these
+those
+with
+much
+to
+me
+be
+is
+in
+i

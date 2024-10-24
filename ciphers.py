@@ -46,7 +46,7 @@ class WordSegmenter:
             with open(file_path, 'r') as file:
                 special_words = set(word.strip().lower() for word in file)
         else:
-            special_words = {"chatgpt", "python", "ai", "openai", "code", "encryption"}
+            special_words = {"babbage", "lovelace", "palmerstone", "ada", "charles", "lord"}
         return special_words
 
     def load_text_from_file(self, file_path):
@@ -140,7 +140,7 @@ class CipherCmd(cmd.Cmd):
         if text:
             segmented_words = self.segmenter.word_segmentation(text)
             if segmented_words:
-                print("Best segmentation (with special words priority):", segmented_words)
+                print("Best segmentation (with special words priority):", *segmented_words)
                 print(f"Total valid words found (with special words priority): {len(segmented_words)}")
             else:
                 print("No valid segmentation found.")

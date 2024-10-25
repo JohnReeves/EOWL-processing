@@ -155,26 +155,24 @@ class CipherChallengeCLI(cmd.Cmd):
 \033[4mUtility commands\033[0m
     list: Displays the available plaintext or cipher files
     load <filname>: Loads the specified plaintext or cipher file
-    write <filename>: write the plaintext or cipher to a file
+    save <filename>: Saves the plain or cipher text to a file
     edit: Starts the embedded text editor to edit cipher and plain text
 
 \033[4mCipher commands\033[0m
-    set_cipher: Set the cipher type and its parameters
-    encode: Encode a short message
-    decode: Decode a short cipher text
+    set_cipher: Sets the cipher type and its parameters
+    encode / decode: Encodes / decodes a short message
     try_decrypt_sequence: Decodes a file using a sequence of parameter values
-    segmentation: Separation of plaintext into individual words
+    segment: Separates continuous plain text into a sequence of individual words
 
 \033[4mWhile using the cipher challenge CLI\033[0m
     Type 'help' or '?' to list all the available commands
     Type 'help <command>' to get a reminder of <command>'s syntax
     Type 'quit' or 'exit' to exit the program
 
-\033[4mSolving ciphers with the cipher challenge CLI\033[0m
-    Type 'python3 cipher.py' to start this program
+\033[4mTo solve ciphers with the cipher challenge CLI\033[0m
     Type 'edit' to copy & paste the cipher challenge text to a file in /cipher_challenge/
     Type 'list' to find the file your want to decode or encode
-    Type 'load <filename>' to get a reminder of <command>'s syntax
+    Type 'load <filename>' to load the file contents into the cipher challenge CLI
 
 A. to decode the cipher text
     Type 'set_cipher' to select caesar or affine cipher (more coming later!)
@@ -228,7 +226,7 @@ B. to separate the decoded text into proper words
         except Exception as e:
             print(f"Failed to load file: {e}")
     
-    def do_write(self, arg):
+    def do_save(self, arg):
         """Write the current buffer text to a file in the /cipher_challenge/ sub-directory."""
         if self.loaded_text:
             # Check if the user provided a filename
@@ -247,7 +245,7 @@ B. to separate the decoded text into proper words
             except Exception as e:
                 print(f"Error writing to file: {e}")
         else:
-            print("No text in buffer to write. Load or decode text first.")
+            print("No text in buffer to save. Load or decode text first.")
 
     def do_edit(self, arg):
         """Open the editor to edit the buffer content or load a file."""

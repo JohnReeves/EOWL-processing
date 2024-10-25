@@ -1,5 +1,10 @@
+import tkinter as tk
+from tkinter import filedialog, messagebox
+import argparse
 import string
 import cmd
+import os
+
 
 class SubstitutionCipher:
     def __init__(self, cipher_type='affine', a=5, b=8):
@@ -15,8 +20,6 @@ class SubstitutionCipher:
             shifted_alphabet = ''.join(self.alphabet[(self.a * i + self.b) % 26] for i in range(26))
         else:
             raise ValueError(f"Unknown cipher type: {self.cipher_type}")
-        
-        # Create a dictionary that maps the normal alphabet to the substitution alphabet
         return dict(zip(self.alphabet, shifted_alphabet))
 
     def encode(self, plaintext):
@@ -71,7 +74,60 @@ class WordSegmenter:
 
         return dp[n] if dp[n] is not None else []
 
-class CipherCmd(cmd.Cmd):
+
+class CipherEditor:
+    def __init__(self, cli_instance, txt_content=None):
+        self.cli_instance = cli_instance
+        self.root = tk.Tk()
+        self.root.title("Cipher Editor")
+        self.root.minsize(30, 800)
+
+        self.text = tk.Text(self.root, wrap=tk.WORD)
+        self.text.pack(expand=True, fill=tk.BOTH)
+        
+        if txt_content:
+            self.text.insert(tk.END, txt_content)
+        
+        button_frame = tk.Frame(self.root)
+        button_frame.pack(side=tk.BOTTOM, fill=tk.X)
+        
+        load_button = tk.Button(button_frame, text="Load", command=self.load_file)
+        save_button = tk.Button(button_frame, text="Save", command=self.save_file)
+        edit_button = tk.Button(button_frame, text="Reload", command=self.reload_file)
+
+        load_button.pack(side=tk.LEFT)
+        save_button.pack(side=tk.LEFT)
+        edit_button.pack(side=tk.LEFT)
+
+    def load_file(self):
+        """Load a cipher or plaintext file into the text editor."""
+        file_path = filedialog.askopenfilename(defaultextension=".txt", filetypes=[("TXT Files", "*.txt"), ("All Files", "*.*")])
+        if not file_path:
+            return
+        with open(file_path, 'r') as file:
+            content = file.read()
+            self.text.delete(1.0, tk.END)  # Clear the text widget
+            self.text.insert(tk.END, content)  # Insert the cipher content
+        messagebox.showinfo("Load", f"Loaded {file_path}")
+
+
+    def reload_file(self):
+        """Load the file into the CLI."""
+        file_path = filedialog.askopenfilename(defaultextension=".txt", filetypes=[("TXT Files", "*.txt"), ("All Files", "*.*")])
+        if not file_path:
+            return
+        self.cli_instance.load_file(file_path)
+        messagebox.showinfo("Reload", f"Reloaded {file_path}")
+
+    def run(self):
+        self.root.mainloop()
+
+# Helper function to list available cipher challenge files
+def list_files(directory):
+    return [f for f in os.listdir(directory) if f.endswith('.txt')]
+
+
+class CipherChallengeCLI(cmd.Cmd):
     intro = """
     
                                 Welcome to the cipher challenge CLI
@@ -102,25 +158,86 @@ class CipherCmd(cmd.Cmd):
     """
     prompt = "(cipher) "
     
-    def __init__(self):
+    def __init__(self, directory):
         super().__init__()
+        self.directory = directory
         self.cipher = SubstitutionCipher(cipher_type='caesar', b=3)
         self.segmenter = WordSegmenter("/usr/share/dict/words", "special_words.txt")  
         self.loaded_text = None  # This stores the loaded file content
 
-    def do_set_cipher(self, arg):
-        "Set the cipher type and parameters: caesar b=<shift>, affine a=<multiplier> b=<shift>"
-        args = arg.split()
-        cipher_type = args[0]
-        params = {k: int(v) for k, v in (x.split('=') for x in args[1:])}
-        
-        if cipher_type == 'caesar':
-            self.cipher = SubstitutionCipher(cipher_type='caesar', b=params.get('b', 3))
-        elif cipher_type == 'affine':
-            self.cipher = SubstitutionCipher(cipher_type='affine', a=params.get('a', 5), b=params.get('b', 8))
+    def do_list(self, arg):
+        """List all available state machine JSON files in the directory. 
+    Usage: list
+    """
+        files = list_files(self.directory)
+        if files:
+            print("Available cipher challenge files:")
+            for f in files:
+                print(f"  - {f}")
         else:
-            print(f"Unknown cipher type: {cipher_type}")
+            print(f"No cipher files in: {self.directory}")
+
+    def do_load(self, arg):
+        "Load a text file: load <file_path>"
+        try:
+            filename = arg.strip()
+            if not filename:
+                print("No filename provided. Please provide a valid filename.")
+                return
+
+            filepath = os.path.join(self.directory, filename)
+            if not os.path.isfile(filepath):
+                print(f"File {filename} does not exist in {self.directory}.")
+                return
+
+            self.loaded_text = self.segmenter.load_text_from_file(filepath)
+            print(f"Loaded file '{filename}' successfully with content:\n{self.loaded_text[:100]}...")  # Show a snippet
+        except Exception as e:
+            print(f"Failed to load file: {e}")
     
+    def do_write(self, arg):
+        """Write the current buffer text to a file in the /cipher_challenge/ sub-directory."""
+        if self.loaded_text:
+            # Check if the user provided a filename
+            if not arg:
+                print("Please provide a filename to save the text. Usage: write <filename>")
+                return
+
+            # Create the full file path
+            file_path = os.path.join(self.directory, arg.strip())
+
+            try:
+                # Write the buffer content to the file in the /cipher_challenge/ directory
+                with open(file_path, 'w') as file:
+                    file.write(self.loaded_text)
+                print(f"Buffer text written to file '{file_path}' successfully.")
+            except Exception as e:
+                print(f"Error writing to file: {e}")
+        else:
+            print("No text in buffer to write. Load or decode text first.")
+
+
+    def do_edit(self, arg):
+        """Open the text editor to create or modify the loaded text."""
+        editor = CipherEditor(self, txt_content=self.loaded_text)  # Pass the loaded text to the editor
+        editor.run()
+
+    def do_set_cipher(self, arg):
+        "Set the cipher type and parameters: set_cipher caesar b=<shift> OR set_cipher affine a=<multiplier> b=<shift>"
+        try:
+            args = arg.split()
+            cipher_type = args[0].lower()
+            params = {k: int(v) for k, v in (x.split('=') for x in args[1:])}
+
+            if cipher_type == 'caesar':
+                self.cipher = SubstitutionCipher(cipher_type='caesar', b=params.get('b', 3))
+            elif cipher_type == 'affine':
+                self.cipher = SubstitutionCipher(cipher_type='affine', a=params.get('a', 5), b=params.get('b', 8))
+            else:
+                print(f"Unknown cipher type: {cipher_type}")
+        except (IndexError, ValueError):
+            print("Invalid parameters. Usage: set_cipher caesar b=<shift> OR set_cipher affine a=<multiplier> b=<shift>")
+  
     def do_encode(self, arg):
         "Encode a message: encode <message>"
         print("Encoded message:", self.cipher.encode(arg))
@@ -161,7 +278,7 @@ class CipherCmd(cmd.Cmd):
             decoded = self.cipher.decode(self.loaded_text)
             print(f"Decrypted text with parameters {params}: {decoded}")
 
-    def do_segmentation(self, arg):
+    def do_segment(self, arg):
         "Segment text: segment <file_path or loaded text>"
         text = self.loaded_text or arg
         if text:
@@ -172,28 +289,7 @@ class CipherCmd(cmd.Cmd):
             else:
                 print("No valid segmentation found.")
         else:
-            print("No text provided or loaded. Use 'segment <file_path>' or 'load_file <file_path>'.")
-
-    def do_load(self, arg):
-        "Load a text file: load_file <file_path>"
-        try:
-            with open(arg, 'r') as file:
-                self.loaded_text = file.read().replace("\n", "").replace("\r", "").strip()
-            print(f"File '{arg}' loaded successfully.")
-        except FileNotFoundError:
-            print(f"File not found: {arg}")
-
-    def do_write(self, arg):
-        "Write the current buffer text to a file: write_file <file_path>"
-        if self.loaded_text:
-            try:
-                with open(arg, 'w') as file:
-                    file.write(self.loaded_text)
-                print(f"Buffer text written to file '{arg}' successfully.")
-            except Exception as e:
-                print(f"Error writing to file: {e}")
-        else:
-            print("No text in buffer to write. Load or decode text first.")
+            print("No text provided or loaded. Use 'segment <file_path>' or 'load <file_path>'.")
 
     def do_exit(self, arg):
         "Exit the program"
@@ -205,5 +301,21 @@ class CipherCmd(cmd.Cmd):
         print("Goodbye!")
         return True
 
+
+def parse_args_and_run_cli():
+    parser = argparse.ArgumentParser(description="Run the cipher challenge CLI to interactively decrypt those messages.")
+    
+    parser.add_argument(
+        "--directory",
+        type=str,
+        default="./cipher_challenge/",
+        help="Directory where the cipher challenge files are stored. Default is './cipher challenge/'"
+    )
+    
+    args = parser.parse_args()
+
+    cli = CipherChallengeCLI(args.directory)
+    cli.cmdloop()
+
 if __name__ == "__main__":
-    CipherCmd().cmdloop()
+    parse_args_and_run_cli()

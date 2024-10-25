@@ -72,7 +72,34 @@ class WordSegmenter:
         return dp[n] if dp[n] is not None else []
 
 class CipherCmd(cmd.Cmd):
-    intro = "Welcome to the unified cipher and word segmentation tool. Type help or ? to list commands.\n"
+    intro = """
+    
+                                Welcome to the cipher challenge CLI
+                                ~~~~~~~~~~~~~~~*@*~~~~~~~~~~~~~~
+
+\033[4mUtility commands\033[0m
+    list: Displays the available plaintext or cipher files
+    load <filname>: Loads the specified plaintext or cipher file
+    write <filename>: write the plaintext or cipher to a file
+    edit: Use the embedded text editor to edit plaintext
+    quit or exit: Exits the CLI.
+
+\033[4mCipher commands\033[0m
+    set_cipher: Set the cipher type and its parameters
+    encode: Encode a short message
+    decode: Deceode a short cipher text
+    try_decrypt_sequence: Decodes a file using a sequence of parameter values
+    segmentation: Separation of plaintext into individual words
+    goto <state>: Sets the current state to the named state
+
+                                Welcome to the cipher challenge CLI
+                                ~~~~~~~~~~~~~~~*@*~~~~~~~~~~~~~~
+
+\033[4mWhile using the State Machine CLI\033[0m
+    Type 'help' or '?' to list all the available commands
+    Type 'help <command>' to get a reminder of <command>'s syntax
+
+    """
     prompt = "(cipher) "
     
     def __init__(self):
@@ -134,7 +161,7 @@ class CipherCmd(cmd.Cmd):
             decoded = self.cipher.decode(self.loaded_text)
             print(f"Decrypted text with parameters {params}: {decoded}")
 
-    def do_segment(self, arg):
+    def do_segmentation(self, arg):
         "Segment text: segment <file_path or loaded text>"
         text = self.loaded_text or arg
         if text:
@@ -147,7 +174,7 @@ class CipherCmd(cmd.Cmd):
         else:
             print("No text provided or loaded. Use 'segment <file_path>' or 'load_file <file_path>'.")
 
-    def do_load_file(self, arg):
+    def do_load(self, arg):
         "Load a text file: load_file <file_path>"
         try:
             with open(arg, 'r') as file:
@@ -156,7 +183,7 @@ class CipherCmd(cmd.Cmd):
         except FileNotFoundError:
             print(f"File not found: {arg}")
 
-    def do_write_file(self, arg):
+    def do_write(self, arg):
         "Write the current buffer text to a file: write_file <file_path>"
         if self.loaded_text:
             try:

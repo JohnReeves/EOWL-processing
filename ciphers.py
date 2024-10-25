@@ -92,7 +92,7 @@ class CipherEditor:
         button_frame.pack(side=tk.BOTTOM, fill=tk.X)
         
         load_button = tk.Button(button_frame, text="Load", command=self.load_file)
-        save_button = tk.Button(button_frame, text="Save", command=self.save_file)
+        save_button = tk.Button(button_frame, text="Save", command=self.save_file)  # Fixed error here
         edit_button = tk.Button(button_frame, text="Reload", command=self.reload_file)
 
         load_button.pack(side=tk.LEFT)
@@ -101,19 +101,39 @@ class CipherEditor:
 
     def load_file(self):
         """Load a cipher or plaintext file into the text editor."""
-        file_path = filedialog.askopenfilename(defaultextension=".txt", filetypes=[("TXT Files", "*.txt"), ("All Files", "*.*")])
+        file_path = filedialog.askopenfilename(
+            defaultextension=".txt", 
+            filetypes=[("TXT Files", "*.txt"), ("All Files", "*.*")]
+            )
         if not file_path:
             return
         with open(file_path, 'r') as file:
             content = file.read()
-            self.text.delete(1.0, tk.END)  # Clear the text widget
-            self.text.insert(tk.END, content)  # Insert the cipher content
+            self.text.delete(1.0, tk.END) 
+            self.text.insert(tk.END, content) 
         messagebox.showinfo("Load", f"Loaded {file_path}")
 
+    def save_file(self):
+        """Save the current content of the text editor to a file."""
+        file_path = filedialog.asksaveasfilename(
+            defaultextension=".txt", 
+            filetypes=[("TXT Files", "*.txt"), ("All Files", "*.*")]
+            )
+        if not file_path:
+            return
+        try:
+            with open(file_path, 'w') as file:
+                file.write(self.text.get(1.0, tk.END))  
+            messagebox.showinfo("Save", f"Saved to {file_path}")
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to save the file: {e}")
 
     def reload_file(self):
-        """Load the file into the CLI."""
-        file_path = filedialog.askopenfilename(defaultextension=".txt", filetypes=[("TXT Files", "*.txt"), ("All Files", "*.*")])
+        """Reload the file into the CLI."""
+        file_path = filedialog.askopenfilename(
+            defaultextension=".txt", 
+            filetypes=[("TXT Files", "*.txt"), ("All Files", "*.*")]
+            )
         if not file_path:
             return
         self.cli_instance.load_file(file_path)
@@ -122,6 +142,7 @@ class CipherEditor:
     def run(self):
         self.root.mainloop()
 
+
 # Helper function to list available cipher challenge files
 def list_files(directory):
     return [f for f in os.listdir(directory) if f.endswith('.txt')]
@@ -129,32 +150,44 @@ def list_files(directory):
 
 class CipherChallengeCLI(cmd.Cmd):
     intro = """
-    
                                 Welcome to the cipher challenge CLI
-                                ~~~~~~~~~~~~~~~*@*~~~~~~~~~~~~~~
-
+                                ~~~~~~~~~~~~~~~~*@*~~~~~~~~~~~~~~~~
 \033[4mUtility commands\033[0m
     list: Displays the available plaintext or cipher files
     load <filname>: Loads the specified plaintext or cipher file
     write <filename>: write the plaintext or cipher to a file
-    edit: Use the embedded text editor to edit plaintext
-    quit or exit: Exits the CLI.
+    edit: Starts the embedded text editor to edit cipher and plain text
 
 \033[4mCipher commands\033[0m
     set_cipher: Set the cipher type and its parameters
     encode: Encode a short message
-    decode: Deceode a short cipher text
+    decode: Decode a short cipher text
     try_decrypt_sequence: Decodes a file using a sequence of parameter values
     segmentation: Separation of plaintext into individual words
-    goto <state>: Sets the current state to the named state
 
-                                Welcome to the cipher challenge CLI
-                                ~~~~~~~~~~~~~~~*@*~~~~~~~~~~~~~~
-
-\033[4mWhile using the State Machine CLI\033[0m
+\033[4mWhile using the cipher challenge CLI\033[0m
     Type 'help' or '?' to list all the available commands
     Type 'help <command>' to get a reminder of <command>'s syntax
+    Type 'quit' or 'exit' to exit the program
 
+\033[4mSolving ciphers with the cipher challenge CLI\033[0m
+    Type 'python3 cipher.py' to start this program
+    Type 'edit' to copy & paste the cipher challenge text to a file in /cipher_challenge/
+    Type 'list' to find the file your want to decode or encode
+    Type 'load <filename>' to get a reminder of <command>'s syntax
+
+A. to decode the cipher text
+    Type 'set_cipher' to select caesar or affine cipher (more coming later!)
+                      and provide the parameters for the chosen cipher
+    Type 'decode' to decode the loaded cipher text using the chosen cipher
+    Type 'try_decrypt_sequence' to decode the loaded cipher text using a sequence of cipher values
+
+B. to separate the decoded text into proper words
+    Type 'segment' or 'segment <filename>' to run the segmentation function
+    Type 'edit' or 'edit <filename>' to load the separated words into a text editor 
+                                     and manually correct the word separation and save the plaintext
+
+\033[4mMore ciphers will be added over time as the cipher challenge progresses\033[0m 
     """
     prompt = "(cipher) "
     
@@ -217,10 +250,29 @@ class CipherChallengeCLI(cmd.Cmd):
             print("No text in buffer to write. Load or decode text first.")
 
     def do_edit(self, arg):
-        """Open the text editor to create or modify the loaded text."""
-        editor = CipherEditor(self, txt_content=self.loaded_text)  # Pass the loaded text to the editor
-        editor.run()
+        """Open the editor to edit the buffer content or load a file."""
+        if self.loaded_text:
+            # Check if the user provided a filename
+            if arg:
+                file_path = os.path.join(self.directory, arg.strip())
+                if not os.path.isfile(file_path):
+                    print(f"File {arg} does not exist in {self.directory}.")
+                    return
+                try:                
+                    # write the file content to the editor
+                    with open(file_path, 'r') as file:
+                        file_content = file.read()
+                    editor = CipherEditor(self, file_content)
+                except Exception as e:
+                    print(f"Error accessing file: {e}")                    
+            else:
+                buffer_content = self.loaded_text if self.loaded_text else "" 
 
+                editor = CipherEditor(self, buffer_content)
+            editor.run()
+        else:
+            print("No text in buffer to write. Load or decode text first.")
+           
     def do_set_cipher(self, arg):
         "Set the cipher type and parameters: set_cipher caesar b=<shift> OR set_cipher affine a=<multiplier> b=<shift>"
         try:
@@ -283,8 +335,11 @@ class CipherChallengeCLI(cmd.Cmd):
         if text:
             segmented_words = self.segmenter.word_segmentation(text)
             if segmented_words:
-                print("Best segmentation (with special words priority):", *segmented_words[:15])
-                print("Total valid words found (with special words priority):", len(segmented_words))
+                segmented_text = ' '.join(segmented_words)
+                self.loaded_text = segmented_text
+
+                print(f"{len(segmented_words)} words found (with special words priority)\n {segmented_text[:100]}...")
+                print("(Use the \033[4medit\033[0m function to correct and save the segmented text)")
             else:
                 print("No valid segmentation found.")
         else:

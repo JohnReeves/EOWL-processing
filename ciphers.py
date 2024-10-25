@@ -191,7 +191,7 @@ class CipherChallengeCLI(cmd.Cmd):
                 return
 
             self.loaded_text = self.segmenter.load_text_from_file(filepath)
-            print(f"Loaded file '{filename}' successfully with content:\n{self.loaded_text[:100]}...")  # Show a snippet
+            print(f"Loaded file '{filename}' successfully with content:\n{self.loaded_text[:100]}...")
         except Exception as e:
             print(f"Failed to load file: {e}")
     
@@ -215,7 +215,6 @@ class CipherChallengeCLI(cmd.Cmd):
                 print(f"Error writing to file: {e}")
         else:
             print("No text in buffer to write. Load or decode text first.")
-
 
     def do_edit(self, arg):
         """Open the text editor to create or modify the loaded text."""
@@ -284,8 +283,8 @@ class CipherChallengeCLI(cmd.Cmd):
         if text:
             segmented_words = self.segmenter.word_segmentation(text)
             if segmented_words:
-                print("Best segmentation (with special words priority):", *segmented_words)
-                print(f"Total valid words found (with special words priority): {len(segmented_words)}")
+                print("Best segmentation (with special words priority):", *segmented_words[:15])
+                print("Total valid words found (with special words priority):", len(segmented_words))
             else:
                 print("No valid segmentation found.")
         else:

@@ -212,6 +212,8 @@ class CipherChallengeCLI(cmd.Cmd):
 
 \033[4mCipher commands\033[0m
     set_cipher: Sets the cipher type and its parameters
+    show_cipher: Displays the current cipher type and its parameters
+    switch_cipher: Quickly switches between the available cipher types
     encode / decode: Encodes / decodes a short message
     try_decrypt_sequence: Decodes a file using a sequence of parameter values
     segment: Separates continuous plain text into a sequence of individual words
@@ -227,10 +229,11 @@ class CipherChallengeCLI(cmd.Cmd):
     Type 'load <filename>' to load the file contents into the cipher challenge CLI
 
 A. to decode the cipher text
-    Type 'set_cipher' to select caesar or affine cipher (more coming later!)
+    Type 'set_cipher' to select caesar or affine cipher
                       and provide the parameters for the chosen cipher
     Type 'decode' to decode the loaded cipher text using the chosen cipher
     Type 'try_decrypt_sequence' to decode the loaded cipher text using a sequence of cipher values
+    Type 'bruteforce' to decode the loaded text by iterating through parameters values for the available ciphers
 
 B. to separate the decoded text into proper words
     Type 'segment' or 'segment <filename>' to run the segmentation function

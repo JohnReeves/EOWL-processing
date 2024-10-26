@@ -12,6 +12,7 @@ class SubstitutionCipher:
         self.a = a  # Multiplier for Affine Cipher
         self.b = b  # Shift for both Affine and Caesar Ciphers
         self.alphabet = string.ascii_uppercase
+        self.precomputed_alphabets = self.precompute_all_substitution_alphabets()
 
     def create_substitution_alphabet(self):
         if self.cipher_type == 'caesar':
@@ -32,6 +33,57 @@ class SubstitutionCipher:
         reverse_dict = {v: k for k, v in substitution_dict.items()}
         ciphertext = ciphertext.upper()
         return ''.join(reverse_dict.get(char, char) for char in ciphertext)
+
+    def precompute_all_substitution_alphabets(self):
+        """Precompute alphabets for all possible Caesar and Affine ciphers."""
+        caesar_alphabets = {b: self._caesar_shift(b) for b in range(26)}
+        affine_alphabets = {(a, b): self._affine_shift(a, b) for a in range(1, 26, 2) for b in range(26) if self._gcd(a, 26) == 1}
+        return {'caesar': caesar_alphabets, 'affine': affine_alphabets}
+
+    def _caesar_shift(self, b):
+        """Helper to calculate Caesar shift alphabet for a given b."""
+        return self.alphabet[b:] + self.alphabet[:b]
+
+    def _affine_shift(self, a, b):
+        """Helper to calculate Affine shift alphabet for given a and b."""
+        return ''.join(self.alphabet[(a * i + b) % 26] for i in range(26))
+
+    def _gcd(self, a, b):
+        """Helper to compute the greatest common divisor."""
+        while b != 0:
+            a, b = b, a % b
+        return a
+
+    def brute_force_decode(self, ciphertext):
+        """Try all Caesar and Affine cipher parameters to brute-force decode."""
+        brute_force_results = {}
+
+        # Try all Caesar shifts
+        for b in range(26):
+            self.b = b
+            decoded_text = self.decode(ciphertext)
+            brute_force_results[f"Caesar b={b}"] = decoded_text
+
+        # Try all valid Affine (a, b) pairs
+        for a in range(1, 26, 2):
+            if self._gcd(a, 26) == 1:
+                for b in range(26):
+                    self.a = a
+                    self.b = b
+                    decoded_text = self.decode(ciphertext)
+                    brute_force_results[f"Affine a={a} b={b}"] = decoded_text
+
+        return brute_force_results
+
+    def reset_cipher_alphabet(self, cipher_type=None, a=None, b=None):
+        """Reset cipher type and parameters."""
+        if cipher_type:
+            self.cipher_type = cipher_type
+        if a is not None:
+            self.a = a
+        if b is not None:
+            self.b = b
+        self.precomputed_alphabets = self.precompute_all_substitution_alphabets()
 
 
 class WordSegmenter:
@@ -247,6 +299,16 @@ B. to separate the decoded text into proper words
         else:
             print("No text in buffer to save. Load or decode text first.")
 
+    def do_remove_spaces(self, arg):
+        """Remove spaces from the loaded text or provided text: remove_spaces"""
+        text = self.loaded_text or arg
+        if text:
+            self.loaded_text = text.replace(" ", "")
+            self.loaded_text = text.replace(",", "")
+            print(f"Spaces and punctuation removed from loaded text:\n{self.loaded_text[:100]}...")
+        else:
+            print("No text provided or loaded.")
+
     def do_edit(self, arg):
         """Open the editor to edit the buffer content or load a file."""
         if self.loaded_text:
@@ -286,10 +348,100 @@ B. to separate the decoded text into proper words
                 print(f"Unknown cipher type: {cipher_type}")
         except (IndexError, ValueError):
             print("Invalid parameters. Usage: set_cipher caesar b=<shift> OR set_cipher affine a=<multiplier> b=<shift>")
-  
+        
+        print(f"Spaces remove from loaded text:\n{self.loaded_text[:100]}...")
+
+    def do_step_up_b(self, arg):
+        """Increment Caesar shift (b) by 1."""
+        if isinstance(self.cipher, SubstitutionCipher) and self.cipher.cipher_type == 'caesar':
+            self.cipher.b = (self.cipher.b + 1) % 26
+            print(f"Shift (b) increased to {self.cipher.b}.")
+        else:
+            print("Current cipher is not Caesar.")
+        
+        print(f"Spaces remove from loaded text:\n{self.loaded_text[:100]}...")
+
+    def do_step_down_b(self, arg):
+        """Decrement Caesar shift (b) by 1."""
+        if isinstance(self.cipher, SubstitutionCipher) and self.cipher.cipher_type == 'caesar':
+            self.cipher.b = (self.cipher.b - 1) % 26
+            print(f"Shift (b) decreased to {self.cipher.b}.")
+        else:
+            print("Current cipher is not Caesar.")
+
+        print(f"Spaces remove from loaded text:\n{self.loaded_text[:100]}...")
+
+    def do_step_up_a(self, arg):
+        """Increment Affine multiplier (a) by 1."""
+        if isinstance(self.cipher, SubstitutionCipher) and self.cipher.cipher_type == 'affine':
+            self.cipher.a = (self.cipher.a + 1) % 26
+            print(f"Multiplier (a) increased to {self.cipher.a}.")
+        else:
+            print("Current cipher is not Affine.")
+
+        print(f"Spaces remove from loaded text:\n{self.loaded_text[:100]}...")
+
+    def do_step_down_a(self, arg):
+        """Decrement Affine multiplier (a) by 1."""
+        if isinstance(self.cipher, SubstitutionCipher) and self.cipher.cipher_type == 'affine':
+            self.cipher.a = (self.cipher.a - 1) % 26
+            print(f"Multiplier (a) decreased to {self.cipher.a}.")
+        else:
+            print("Current cipher is not Affine.")
+
+        print(f"Spaces remove from loaded text:\n{self.loaded_text[:100]}...")
+
+    def do_step_up_b_affine(self, arg):
+        """Increment Affine shift (b) by 1."""
+        if isinstance(self.cipher, SubstitutionCipher) and self.cipher.cipher_type == 'affine':
+            self.cipher.b = (self.cipher.b + 1) % 26
+            print(f"Shift (b) increased to {self.cipher.b}.")
+        else:
+            print("Current cipher is not Affine.")
+
+        print(f"Spaces remove from loaded text:\n{self.loaded_text[:100]}...")
+
+    def do_step_down_b_affine(self, arg):
+        """Decrement Affine shift (b) by 1."""
+        if isinstance(self.cipher, SubstitutionCipher) and self.cipher.cipher_type == 'affine':
+            self.cipher.b = (self.cipher.b - 1) % 26
+            print(f"Shift (b) decreased to {self.cipher.b}.")
+        else:
+            print("Current cipher is not Affine.")
+
+        print(f"Spaces remove from loaded text:\n{self.loaded_text[:100]}...")
+
+    def do_precompute(self, arg):
+        """Precompute all substitution alphabets."""
+        self.cipher.precompute_all_substitution_alphabets()
+        print("Precomputed all substitution alphabets.")
+
+    def do_bruteforce(self, arg):
+        """Perform brute-force decryption on the loaded text."""
+        if not self.loaded_text:
+            print("No text loaded to brute-force decode.")
+            return
+
+        results = self.cipher.brute_force_decode(self.loaded_text)
+        for params, decoded_text in results.items():
+            print(f"Using {params}: {decoded_text[:50]}...")  # Print a snippet of the result for brevity
+
+    def do_reset(self, arg):
+        """Reset the cipher type and parameters."""
+        args = arg.split()
+        cipher_type = args[0] if args else None
+        a = int(args[1]) if len(args) > 1 else None
+        b = int(args[2]) if len(args) > 2 else None
+        self.cipher.reset_cipher_alphabet(cipher_type, a, b)
+        print(f"Cipher reset to type: {self.cipher.cipher_type}, a={self.cipher.a}, b={self.cipher.b}")
+
+        print(f"Spaces remove from loaded text:\n{self.loaded_text[:100]}...")
+
     def do_encode(self, arg):
         "Encode a message: encode <message>"
         print("Encoded message:", self.cipher.encode(arg))
+
+        print(f"Spaces remove from loaded text:\n{self.loaded_text[:100]}...")
 
     def do_decode(self, arg):
         "Decode a message: decode <message>"
@@ -300,6 +452,8 @@ B. to separate the decoded text into proper words
             print("Decoded message:", decoded)
         else:
             print("No text provided or loaded. Use 'decode <message>' or 'load_file <file_path>'.")
+
+        print(f"Spaces remove from loaded text:\n{self.loaded_text[:100]}...")
 
     def do_try_decrypt_sequence(self, arg):
         """
@@ -323,8 +477,8 @@ B. to separate the decoded text into proper words
                 print(f"Unknown cipher type: {cipher_type}")
                 continue
 
-            print(f"Attempting decryption with parameters: {params}")
-            decoded = self.cipher.decode(self.loaded_text)
+            #print(f"Attempting decryption with parameters: {params}")
+            decoded = self.cipher.decode(self.loaded_text[:100])
             print(f"Decrypted text with parameters {params}: {decoded}")
 
     def do_segment(self, arg):

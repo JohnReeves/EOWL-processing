@@ -106,7 +106,7 @@ class WordSegmenter:
 
     def load_text_from_file(self, file_path):
         with open(file_path, 'r') as file:
-            return file.read().replace("\n", "").replace("\r", "").strip()
+            return file.read().replace("\n", "").replace("\r", "").strip().lower()
 
     def word_segmentation(self, text):
         cleaned_text = ''.join(char for char in text.lower() if char in string.ascii_lowercase)
@@ -412,7 +412,8 @@ B. to separate the decoded text into proper words
         text = arg or self.loaded_text
         if text:
             decoded = self.cipher.decode(text)
-            print(f"Decoded message:\n{decoded[:100]}...")
+            self.loaded_text = decoded.lower()
+            print(f"Decoded message:\n{self.loaded_text[:100]}...")
         else:
             print("No text provided or loaded. Use 'decode <message>' or 'load_file <file_path>'.")
 
@@ -452,7 +453,6 @@ B. to separate the decoded text into proper words
                 self.loaded_text = segmented_text
 
                 print(f"{len(segmented_words)} words found (with special words priority)\n {segmented_text[:100]}...")
-                print("(Use the \033[4medit\033[0m function to correct and save the segmented text)")
             else:
                 print("No valid segmentation found.")
         else:

@@ -420,8 +420,7 @@ B. to separate the decoded text into proper words
         text = arg or self.loaded_text
         if text:
             encoded = self.cipher.encoded(text)
-            self.loaded_text = encoded 
-            print(f"Decoded message:\n{self.loaded_text[:100]}...")
+            print(f"Decoded message:\n{encoded[:100]}...")
         else:
             print("No text provided or loaded. Use 'decode <message>' or 'load_file <file_path>'.")
 
@@ -430,8 +429,7 @@ B. to separate the decoded text into proper words
         text = arg or self.loaded_text
         if text:
             decoded = self.cipher.decode(text)
-            self.loaded_text = decoded 
-            print(f"Decoded message:\n{self.loaded_text[:100]}...")
+            print(f"Decoded message:\n{decoded[:100]}...")
         else:
             print("No text provided or loaded. Use 'decode <message>' or 'load_file <file_path>'.")
 

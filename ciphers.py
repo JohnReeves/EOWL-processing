@@ -249,9 +249,7 @@ B. to separate the decoded text into proper words
         self.loaded_text = None  # This stores the loaded file content
 
     def do_list(self, arg):
-        """List all available state machine JSON files in the directory. 
-    Usage: list
-    """
+        """List all available state machine JSON files in the directory."""
         files = list_files(self.directory)
         if files:
             print("Available cipher challenge files:")
@@ -261,7 +259,7 @@ B. to separate the decoded text into proper words
             print(f"No cipher files in: {self.directory}")
 
     def do_load(self, arg):
-        "Load a text file: load <file_path>"
+        """Load a text file: load <file_path>"""
         try:
             filename = arg.strip()
             if not filename:
@@ -297,7 +295,7 @@ B. to separate the decoded text into proper words
             print("No text in buffer to save. Load or decode text first.")
 
     def do_remove_spaces(self, arg):
-        """Remove spaces from the loaded text or provided text: remove_spaces"""
+        """Remove spaces and punctuation from the loaded text or provided text."""
         text = self.loaded_text or arg
         if text:
             self.loaded_text = text.replace(" ", "").replace(",", "").replace(".", "")
@@ -328,7 +326,8 @@ B. to separate the decoded text into proper words
             print("No text in buffer to write. Load or decode text first.")
            
     def do_set_cipher(self, arg):
-        "Set the cipher type and parameters: set_cipher caesar b=<shift> OR set_cipher affine a=<multiplier> b=<shift>"
+        """Set the cipher type and parameters: set_cipher caesar b=<shift> OR set_cipher affine a=<multiplier> b=<shift>
+        """
         try:
             args = arg.split()
             cipher_type = args[0].lower()
@@ -343,53 +342,34 @@ B. to separate the decoded text into proper words
         except (IndexError, ValueError):
             print("Invalid parameters. Usage: set_cipher caesar b=<shift> OR set_cipher affine a=<multiplier> b=<shift>")
 
-    def do_step_up_b(self, arg):
-        """Increment Caesar shift (b) by 1."""
-        if isinstance(self.cipher, SubstitutionCipher) and self.cipher.cipher_type == 'caesar':
-            self.cipher.b = (self.cipher.b + 1) % 26
-            print(f"Shift (b) increased to {self.cipher.b}.")
+    def do_switch_cipher(self, arg):
+        """Quickly switch between cipher types: caesar, affine: switch_cipher <cipher_type>
+        """
+        cipher_type = arg.strip().lower()
+        if cipher_type == 'caesar':
+            self.cipher.reset_cipher_alphabet(cipher_type='caesar', b=3)  # Default Caesar
+        elif cipher_type == 'affine':
+            self.cipher.reset_cipher_alphabet(cipher_type='affine', a=5, b=8)  # Default Affine
         else:
-            print("Current cipher is not Caesar.")
+            print(f"Unknown cipher type: {cipher_type}")
+            return
+        print(f"Switched to {cipher_type} cipher. Current parameters: a={self.cipher.a}, b={self.cipher.b}")
 
-    def do_step_down_b(self, arg):
-        """Decrement Caesar shift (b) by 1."""
-        if isinstance(self.cipher, SubstitutionCipher) and self.cipher.cipher_type == 'caesar':
-            self.cipher.b = (self.cipher.b - 1) % 26
-            print(f"Shift (b) decreased to {self.cipher.b}.")
-        else:
-            print("Current cipher is not Caesar.")
+    def do_show_cipher(self, arg):
+        """Display the current cipher state and parameters.
+        """
+        current_alphabet = self.cipher.create_substitution_alphabet()
+        print(f"Current cipher type: {self.cipher.cipher_type}")
+        print(f"Parameters: a={self.cipher.a}, b={self.cipher.b}")
+        print(f"Substitution alphabet: {''.join(current_alphabet.values())}")
 
-    def do_step_up_a(self, arg):
-        """Increment Affine multiplier (a) by 1."""
-        if isinstance(self.cipher, SubstitutionCipher) and self.cipher.cipher_type == 'affine':
-            self.cipher.a = (self.cipher.a + 1) % 26
-            print(f"Multiplier (a) increased to {self.cipher.a}.")
-        else:
-            print("Current cipher is not Affine.")
-
-    def do_step_down_a(self, arg):
-        """Decrement Affine multiplier (a) by 1."""
-        if isinstance(self.cipher, SubstitutionCipher) and self.cipher.cipher_type == 'affine':
-            self.cipher.a = (self.cipher.a - 1) % 26
-            print(f"Multiplier (a) decreased to {self.cipher.a}.")
-        else:
-            print("Current cipher is not Affine.")
-
-    def do_step_up_b_affine(self, arg):
-        """Increment Affine shift (b) by 1."""
-        if isinstance(self.cipher, SubstitutionCipher) and self.cipher.cipher_type == 'affine':
-            self.cipher.b = (self.cipher.b + 1) % 26
-            print(f"Shift (b) increased to {self.cipher.b}.")
-        else:
-            print("Current cipher is not Affine.")
-
-    def do_step_down_b_affine(self, arg):
-        """Decrement Affine shift (b) by 1."""
-        if isinstance(self.cipher, SubstitutionCipher) and self.cipher.cipher_type == 'affine':
-            self.cipher.b = (self.cipher.b - 1) % 26
-            print(f"Shift (b) decreased to {self.cipher.b}.")
-        else:
-            print("Current cipher is not Affine.")
+    def do_show_text(self, arg):
+        """Display a snippet of the current text buffer.
+        """
+        if not self.loaded_text:
+            print("No text loaded in buffer.")
+            return
+        print(f"Current loaded text: {self.loaded_text[:100]}...")
 
     def do_precompute(self, arg):
         """Precompute all substitution alphabets."""

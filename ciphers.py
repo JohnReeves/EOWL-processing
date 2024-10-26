@@ -281,16 +281,13 @@ B. to separate the decoded text into proper words
     def do_save(self, arg):
         """Write the current buffer text to a file in the /cipher_challenge/ sub-directory."""
         if self.loaded_text:
-            # Check if the user provided a filename
             if not arg:
                 print("Please provide a filename to save the text. Usage: write <filename>")
                 return
 
-            # Create the full file path
             file_path = os.path.join(self.directory, arg.strip())
 
             try:
-                # Write the buffer content to the file in the /cipher_challenge/ directory
                 with open(file_path, 'w') as file:
                     file.write(self.loaded_text)
                 print(f"Buffer text written to file '{file_path}' successfully.")
@@ -303,8 +300,7 @@ B. to separate the decoded text into proper words
         """Remove spaces from the loaded text or provided text: remove_spaces"""
         text = self.loaded_text or arg
         if text:
-            self.loaded_text = text.replace(" ", "")
-            self.loaded_text = text.replace(",", "")
+            self.loaded_text = text.replace(" ", "").replace(",", "").replace(".", "")
             print(f"Spaces and punctuation removed from loaded text:\n{self.loaded_text[:100]}...")
         else:
             print("No text provided or loaded.")
@@ -312,14 +308,12 @@ B. to separate the decoded text into proper words
     def do_edit(self, arg):
         """Open the editor to edit the buffer content or load a file."""
         if self.loaded_text:
-            # Check if the user provided a filename
             if arg:
                 file_path = os.path.join(self.directory, arg.strip())
                 if not os.path.isfile(file_path):
                     print(f"File {arg} does not exist in {self.directory}.")
                     return
                 try:                
-                    # write the file content to the editor
                     with open(file_path, 'r') as file:
                         file_content = file.read()
                     editor = CipherEditor(self, file_content)
@@ -348,8 +342,6 @@ B. to separate the decoded text into proper words
                 print(f"Unknown cipher type: {cipher_type}")
         except (IndexError, ValueError):
             print("Invalid parameters. Usage: set_cipher caesar b=<shift> OR set_cipher affine a=<multiplier> b=<shift>")
-        
-        print(f"Spaces remove from loaded text:\n{self.loaded_text[:100]}...")
 
     def do_step_up_b(self, arg):
         """Increment Caesar shift (b) by 1."""
@@ -358,8 +350,6 @@ B. to separate the decoded text into proper words
             print(f"Shift (b) increased to {self.cipher.b}.")
         else:
             print("Current cipher is not Caesar.")
-        
-        print(f"Spaces remove from loaded text:\n{self.loaded_text[:100]}...")
 
     def do_step_down_b(self, arg):
         """Decrement Caesar shift (b) by 1."""
@@ -369,8 +359,6 @@ B. to separate the decoded text into proper words
         else:
             print("Current cipher is not Caesar.")
 
-        print(f"Spaces remove from loaded text:\n{self.loaded_text[:100]}...")
-
     def do_step_up_a(self, arg):
         """Increment Affine multiplier (a) by 1."""
         if isinstance(self.cipher, SubstitutionCipher) and self.cipher.cipher_type == 'affine':
@@ -378,8 +366,6 @@ B. to separate the decoded text into proper words
             print(f"Multiplier (a) increased to {self.cipher.a}.")
         else:
             print("Current cipher is not Affine.")
-
-        print(f"Spaces remove from loaded text:\n{self.loaded_text[:100]}...")
 
     def do_step_down_a(self, arg):
         """Decrement Affine multiplier (a) by 1."""
@@ -389,8 +375,6 @@ B. to separate the decoded text into proper words
         else:
             print("Current cipher is not Affine.")
 
-        print(f"Spaces remove from loaded text:\n{self.loaded_text[:100]}...")
-
     def do_step_up_b_affine(self, arg):
         """Increment Affine shift (b) by 1."""
         if isinstance(self.cipher, SubstitutionCipher) and self.cipher.cipher_type == 'affine':
@@ -399,8 +383,6 @@ B. to separate the decoded text into proper words
         else:
             print("Current cipher is not Affine.")
 
-        print(f"Spaces remove from loaded text:\n{self.loaded_text[:100]}...")
-
     def do_step_down_b_affine(self, arg):
         """Decrement Affine shift (b) by 1."""
         if isinstance(self.cipher, SubstitutionCipher) and self.cipher.cipher_type == 'affine':
@@ -408,8 +390,6 @@ B. to separate the decoded text into proper words
             print(f"Shift (b) decreased to {self.cipher.b}.")
         else:
             print("Current cipher is not Affine.")
-
-        print(f"Spaces remove from loaded text:\n{self.loaded_text[:100]}...")
 
     def do_precompute(self, arg):
         """Precompute all substitution alphabets."""
@@ -424,7 +404,7 @@ B. to separate the decoded text into proper words
 
         results = self.cipher.brute_force_decode(self.loaded_text)
         for params, decoded_text in results.items():
-            print(f"Using {params}: {decoded_text[:50]}...")  # Print a snippet of the result for brevity
+            print(f"Using {params}: {decoded_text[:50]}...")
 
     def do_reset(self, arg):
         """Reset the cipher type and parameters."""
@@ -435,25 +415,25 @@ B. to separate the decoded text into proper words
         self.cipher.reset_cipher_alphabet(cipher_type, a, b)
         print(f"Cipher reset to type: {self.cipher.cipher_type}, a={self.cipher.a}, b={self.cipher.b}")
 
-        print(f"Spaces remove from loaded text:\n{self.loaded_text[:100]}...")
-
     def do_encode(self, arg):
         "Encode a message: encode <message>"
-        print("Encoded message:", self.cipher.encode(arg))
-
-        print(f"Spaces remove from loaded text:\n{self.loaded_text[:100]}...")
+        text = arg or self.loaded_text
+        if text:
+            encoded = self.cipher.encoded(text)
+            self.loaded_text = encoded 
+            print(f"Decoded message:\n{self.loaded_text[:100]}...")
+        else:
+            print("No text provided or loaded. Use 'decode <message>' or 'load_file <file_path>'.")
 
     def do_decode(self, arg):
         "Decode a message: decode <message>"
         text = arg or self.loaded_text
         if text:
             decoded = self.cipher.decode(text)
-            self.loaded_text = decoded  # Update the buffer with the decoded message
-            print("Decoded message:", decoded)
+            self.loaded_text = decoded 
+            print(f"Decoded message:\n{self.loaded_text[:100]}...")
         else:
             print("No text provided or loaded. Use 'decode <message>' or 'load_file <file_path>'.")
-
-        print(f"Spaces remove from loaded text:\n{self.loaded_text[:100]}...")
 
     def do_try_decrypt_sequence(self, arg):
         """

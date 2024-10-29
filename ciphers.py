@@ -14,26 +14,6 @@ class SubstitutionCipher:
         self.alphabet = string.ascii_uppercase
         self.precomputed_alphabets = self.precompute_all_substitution_alphabets()
 
-    def create_substitution_alphabet(self):
-        if self.cipher_type == 'caesar':
-            shifted_alphabet = self.alphabet[self.b:] + self.alphabet[:self.b]
-        elif self.cipher_type == 'affine':
-            shifted_alphabet = ''.join(self.alphabet[(self.a * i + self.b) % 26] for i in range(26))
-        else:
-            raise ValueError(f"Unknown cipher type: {self.cipher_type}")
-        return dict(zip(self.alphabet, shifted_alphabet))
-
-    def encode(self, plaintext):
-        substitution_dict = self.create_substitution_alphabet()
-        plaintext = plaintext.upper()
-        return ''.join(substitution_dict.get(char, char) for char in plaintext)
-
-    def decode(self, ciphertext):
-        substitution_dict = self.create_substitution_alphabet()
-        reverse_dict = {v: k for k, v in substitution_dict.items()}
-        ciphertext = ciphertext.upper()
-        return ''.join(reverse_dict.get(char, char) for char in ciphertext)
-
     def precompute_all_substitution_alphabets(self):
         """Precompute alphabets for all possible Caesar and Affine ciphers."""
         caesar_alphabets = {b: self._caesar_shift(b) for b in range(26)}
@@ -53,18 +33,40 @@ class SubstitutionCipher:
         while b != 0:
             a, b = b, a % b
         return a
+    
+    def select_substitution_alphabet(self):
+        if self.cipher_type == 'caesar':
+            shifted_alphabet = self.precomputed_alphabets['caesar'][self.b]
+        elif self.cipher_type == 'affine':
+            shifted_alphabet = self.precomputed_alphabets['affine'][(self.a,self.b)]
+        else:
+            raise ValueError(f"Unknown cipher type: {self.cipher_type}")
+        return dict(zip(self.alphabet, shifted_alphabet))
+
+    def encode(self, plaintext):
+        substitution_dict = self.select_substitution_alphabet()
+        plaintext = plaintext.upper()
+        return ''.join(substitution_dict.get(char, char) for char in plaintext)
+
+    def decode(self, ciphertext):
+        substitution_dict = self.select_substitution_alphabet()
+        reverse_dict = {v: k for k, v in substitution_dict.items()}
+        ciphertext = ciphertext.upper()
+        return ''.join(reverse_dict.get(char, char) for char in ciphertext)
 
     def brute_force_decode(self, ciphertext):
         """Try all Caesar and Affine cipher parameters to brute-force decode."""
         brute_force_results = {}
 
         # Try all Caesar shifts
+        self.cipher_type = 'caesar'
         for b in range(26):
             self.b = b
             decoded_text = self.decode(ciphertext)
             brute_force_results[f"Caesar b={b}"] = decoded_text
 
         # Try all valid Affine (a, b) pairs
+        self.cipher_type = 'affine'
         for a in range(1, 26, 2):
             if self._gcd(a, 26) == 1:
                 for b in range(26):
@@ -72,7 +74,6 @@ class SubstitutionCipher:
                     self.b = b
                     decoded_text = self.decode(ciphertext)
                     brute_force_results[f"Affine a={a} b={b}"] = decoded_text
-
         return brute_force_results
 
     def reset_cipher_alphabet(self, cipher_type=None, a=None, b=None):
@@ -388,6 +389,17 @@ B. to separate the decoded text into proper words
         results = self.cipher.brute_force_decode(self.loaded_text)
         for params, decoded_text in results.items():
             print(f"Using {params}: {decoded_text[:50]}...")
+
+    def do_bruteforce_with_segmentation(self, arg):
+        """Perform brute-force decryption on the loaded text."""
+        if not self.loaded_text:
+            print("No text loaded to brute-force decode.")
+            return
+
+        results = self.cipher.brute_force_decode(self.loaded_text)
+        for params, decoded_text in results.items():
+            #print(f"Using {params}: {decoded_text[:50]}...")
+            pass
 
     def do_reset(self, arg):
         """Reset the cipher type and parameters."""

@@ -205,11 +205,6 @@ class CipherChallengeCLI(cmd.Cmd):
     intro = """
                                 Welcome to the cipher challenge CLI
                                 ~~~~~~~~~~~~~~~~*@*~~~~~~~~~~~~~~~~
-\033[4mUtility commands\033[0m
-    list: Displays the available plaintext or cipher files
-    load <filname>: Loads the specified plaintext or cipher file
-    save <filename>: Saves the plain or cipher text to a file
-    edit: Starts the embedded text editor to edit cipher and plain text
 
 \033[4mCipher commands\033[0m
     set_cipher: Sets the cipher type and its parameters
@@ -228,6 +223,7 @@ class CipherChallengeCLI(cmd.Cmd):
     Type 'edit' to copy & paste the cipher challenge text to a file in /cipher_challenge/
     Type 'list' to find the file your want to decode or encode
     Type 'load <filename>' to load the file contents into the cipher challenge CLI
+    Type 'remove_spaces' to remove spaces and punctuation from the cipher text
 
 A. to decode the cipher text
     Type 'set_cipher' to select caesar or affine cipher
@@ -392,14 +388,26 @@ B. to separate the decoded text into proper words
 
     def do_bruteforce_with_segmentation(self, arg):
         """Perform brute-force decryption on the loaded text."""
-        if not self.loaded_text:
+        if not self.loaded_text or arg:
             print("No text loaded to brute-force decode.")
             return
 
-        results = self.cipher.brute_force_decode(self.loaded_text)
-        for params, decoded_text in results.items():
-            #print(f"Using {params}: {decoded_text[:50]}...")
-            pass
+        text = self.loaded_text or arg
+        if text:
+            results = self.cipher.brute_force_decode(self.loaded_text)
+            print('Please wait for results ...\n')
+            for params, decoded_text in results.items():
+                segmented_words = self.segmenter.word_segmentation(decoded_text)
+                segmented_text = ' '.join(segmented_words)
+                self.loaded_text = segmented_text
+                if len(segmented_words) / len(segmented_text) * 100 < 25:
+                    print(f'{len(segmented_words)} words found in {len(segmented_text)} characters using {params}')
+                    print(f'{segmented_text[:100]}...')
+                    print('Type \033[4medit\033[0m to tidy up the deciphered text')
+                    return
+        else:
+            print("No text provided or loaded. Use 'segment <file_path>' or 'load <file_path>'.")
+
 
     def do_reset(self, arg):
         """Reset the cipher type and parameters."""
@@ -465,6 +473,9 @@ B. to separate the decoded text into proper words
                 self.loaded_text = segmented_text
 
                 print(f"{len(segmented_words)} words found (with special words priority)\n {segmented_text[:100]}...")
+                print(f'words found {len(segmented_words)} in {len(segmented_text)} characters')
+
+                return len(segmented_words)/len(segmented_text)*100
             else:
                 print("No valid segmentation found.")
         else:

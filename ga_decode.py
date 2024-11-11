@@ -121,10 +121,10 @@ special_words = load_special_words(special_words_path)
 population = initialize_population()
 text = load_text_from_file(text_path)
 
+print(population[:10])
 
 print("generation one")
 print(fitness_function(['mr','charles','babbage','investigates','warne','lovelace','horsley']))
-# return 7, all valid words from the 'special words' file
 print("==============")
 
 fitness_history = []
@@ -134,10 +134,10 @@ for decoding_alphabet in population:
     segmentation_text = word_segmentation(decrypt_text)
     fitness = fitness_function(segmentation_text)
     fitness_history.append(fitness)
-    if fitness < 70:
-        print(decrypt_text)
-        print(segmentation_text)
-        print(fitness)
+    # if fitness < 70:
+    #     print(decrypt_text)
+    #     print(segmentation_text)
+    #     print(fitness)
     
 
 maxes = heapq.nlargest(2, fitness_history)
@@ -146,3 +146,68 @@ elite_index1 = fitness_history.index(maxes[1])
 
 parent1 = population[elite_index0]
 parent2 = population[elite_index1]
+
+
+population=[]
+
+for x in range(1000):
+    population.extend(crossover(parent1, parent2))
+
+print(population[:10])
+
+print("generation two")
+print(fitness_function(['mr','charles','babbage','investigates','warne','lovelace','horsley']))
+print("==============")
+
+fitness_history = []
+for decoding_alphabet in population:
+
+    decrypt_text = decrypt(text[:100], decoding_alphabet)
+    segmentation_text = word_segmentation(decrypt_text)
+    fitness = fitness_function(segmentation_text)
+    fitness_history.append(fitness)
+    if fitness < 90:
+        print(decrypt_text)
+        print(segmentation_text)
+        print(fitness)   
+
+maxes = heapq.nlargest(2, fitness_history)
+elite_index0 = fitness_history.index(maxes[0])
+elite_index1 = fitness_history.index(maxes[1])
+
+parent1 = population[elite_index0]
+parent2 = population[elite_index1]
+
+
+population=[]
+
+for x in range(1000):
+    population.append(crossover(parent1, parent2))
+
+print("generation three")
+print(fitness_function(['mr','charles','babbage','investigates','warne','lovelace','horsley']))
+print("==============")
+
+fitness_history = []
+for decoding_alphabet in population:
+
+    decoding_alphabet = ''.join(decoding_alphabet[0])
+    decrypt_text = decrypt(text[:100], decoding_alphabet)
+    segmentation_text = word_segmentation(decrypt_text)
+    fitness = fitness_function(segmentation_text)
+    fitness_history.append(fitness)
+    if fitness < 70:
+        print(decrypt_text)
+        print(segmentation_text)
+        print(fitness)   
+
+maxes = heapq.nlargest(2, fitness_history)
+elite_index0 = fitness_history.index(maxes[0])
+elite_index1 = fitness_history.index(maxes[1])
+
+parent1 = population[elite_index0]
+parent2 = population[elite_index1]
+
+# best_alphabet, decoded_text = genetic_algorithm()
+# print("Best alphabet found:", best_alphabet)
+# print("Decoded text:", decoded_text[:500])  

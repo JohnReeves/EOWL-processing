@@ -9,27 +9,27 @@ the_alphabet="abcdefghijklmnopqrstuvwxyz"
 alphabets = {
     # "alphabet": "abcdefghijklmnopqrstuvwxyz",
     # alphabet merging c with k, ie remove c to make 25 letters
-    "alphabet_ck": "abcdefghijklmnopqrstuvwxyz".replace('c',''),
-    "alphabet_kc": "abcdefghijklmnopqrstuvwxyz".replace('k',''),
-    "alphabet_ij": "abcdefghijklmnopqrstuvwxyz".replace('i',''),
-    "alphabet_ji": "abcdefghijklmnopqrstuvwxyz".replace('j',''),
-    "alphabet_uv": "abcdefghijklmnopqrstuvwxyz".replace('u',''),
-    "alphabet_vu": "abcdefghijklmnopqrstuvwxyz".replace('v',''),
-    "alphabet_z": "abcdefghijklmnopqrstuvwxyz".replace('z',''),
-    "salem_ck": "salembcdfghijknopqrstuvwxyz".replace('c',''),
-    "salem_kc": "salembcdfghijknopqrstuvwxyz".replace('k',''),
-    "salem_ij": "salembcdfghijknopqrstuvwxyz".replace('i',''),
-    "salem_ji": "salembcdfghijknopqrstuvwxyz".replace('j',''),
-    "salem_uv": "salembcdfghijknopqrstuvwxyz".replace('u',''),
-    "salem_vu": "salembcdfghijknopqrstuvwxyz".replace('v',''),
-    "salem_z": "salembcdfghijknopqrstuvwxyz".replace('z',''),
-    "janus_ck": "janusbcdefghiklmopqrtvwxyz".replace('c',''),
-    "janus_kc": "janusbcdefghiklmopqrtvwxyz".replace('k',''),
-    "janus_ij": "janusbcdefghiklmopqrtvwxyz".replace('i',''),
-    "janus_ji": "janusbcdefghiklmopqrtvwxyz".replace('j',''),
-    "janus_uv": "janusbcdefghiklmopqrtvwxyz".replace('u',''),
-    "janus_vu": "janusbcdefghiklmopqrtvwxyz".replace('v',''),
-    "janus_z": "janusbcdefghiklmopqrtvwxyz".replace('z','')
+    # "alphabet_ck": "abcdefghijklmnopqrstuvwxyz".replace('c',''),
+    # "alphabet_kc": "abcdefghijklmnopqrstuvwxyz".replace('k',''),
+    # "alphabet_ij": "abcdefghijklmnopqrstuvwxyz".replace('i',''),
+    # "alphabet_ji": "abcdefghijklmnopqrstuvwxyz".replace('j',''),
+    # "alphabet_uv": "abcdefghijklmnopqrstuvwxyz".replace('u',''),
+    # "alphabet_vu": "abcdefghijklmnopqrstuvwxyz".replace('v',''),
+    "alphabet_z": "abcdefghijklmnopqrstuvwxyz".replace('z','')
+    # "salem_ck": "salembcdfghijknopqrstuvwxyz".replace('c',''),
+    # "salem_kc": "salembcdfghijknopqrstuvwxyz".replace('k',''),
+    # "salem_ij": "salembcdfghijknopqrstuvwxyz".replace('i',''),
+    # "salem_ji": "salembcdfghijknopqrstuvwxyz".replace('j',''),
+    # "salem_uv": "salembcdfghijknopqrstuvwxyz".replace('u',''),
+    # "salem_vu": "salembcdfghijknopqrstuvwxyz".replace('v',''),
+    # "salem_z": "salembcdfghijknopqrstuvwxyz".replace('z',''),
+    # "janus_ck": "janusbcdefghiklmopqrtvwxyz".replace('c',''),
+    # "janus_kc": "janusbcdefghiklmopqrtvwxyz".replace('k',''),
+    # "janus_ij": "janusbcdefghiklmopqrtvwxyz".replace('i',''),
+    # "janus_ji": "janusbcdefghiklmopqrtvwxyz".replace('j',''),
+    # "janus_uv": "janusbcdefghiklmopqrtvwxyz".replace('u',''),
+    # "janus_vu": "janusbcdefghiklmopqrtvwxyz".replace('v',''),
+    # "janus_z": "janusbcdefghiklmopqrtvwxyz".replace('z','')
 }
 
 orders = ["rows", "columns"]

@@ -7,6 +7,11 @@ alphabets = {
 
 orders = ["rows", "columns"]
 
+def fold_text(text):
+    half = (len(text) + 1) // 2
+    firsthalf, secondhalf=text[half:], text[:half]
+    return ''.join(a + b for a, b in zip(firsthalf, secondhalf + ' ')).strip()
+
 def generate_alphabets(option="alphabet_ck", order="rows"):
     print(option, order)
     base_alphabet = alphabets[option]
@@ -31,23 +36,15 @@ def decode(encoded_message, decode_alphabet):
     return "".join(decoded_message)
     
 if __name__ == "__main__":
-    text=given_text.replace(' ', '')
-    half = int(len(text)/2)
-    firstpart, secondpart = text[:half], text[half:]
+    text = given_text.replace(' ', '')
+    smurged_text = fold_text(text)
 
-    if len(firstpart) == len(secondpart):
-        smurged_text=''
-        for index in range(half):
-            smurged_text+=f'{firstpart[index]}{secondpart[index]}'
+    decoded_messages=[]
+    for order in orders:
+        for alphabet in alphabets.keys():
+            decode_alphabets = generate_alphabets(alphabet, order) 
+            decoded_message = decode(smurged_text, decode_alphabets["decode"])
+            decoded_messages.append(decoded_message)
 
-        decoded_messages=[]
-        for order in orders:
-            for alphabet in alphabets.keys():
-                decode_alphabets = generate_alphabets(alphabet, order) 
-                decoded_message = decode(smurged_text, decode_alphabets["decode"])
-                decoded_messages.append(decoded_message)
-
-                print(str(decode_alphabets["decode"]).replace("'",""))
-                print(f' --- {decoded_message}')
-    else:
-        print('the texts are not equal -- quitting')
+            print(str(decode_alphabets["decode"]).replace("'",""))
+            print(f' --- {decoded_message}')

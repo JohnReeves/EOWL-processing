@@ -35,6 +35,13 @@ def decode(encoded_message, decode_alphabet):
         decoded_message.append(letter)
     return "".join(decoded_message)
     
+from collections import Counter
+
+def calculate_letter_frequency(text):
+    filtered_text = ''.join(filter(str.isalpha, text)).lower()
+    frequency = Counter(filtered_text)
+    return dict(sorted(frequency.items(), key=lambda item: item[1], reverse=True))
+
 if __name__ == "__main__":
     text = given_text.replace(' ', '')
     smurged_text = fold_text(text)
@@ -45,6 +52,8 @@ if __name__ == "__main__":
             decode_alphabets = generate_alphabets(alphabet, order) 
             decoded_message = decode(smurged_text, decode_alphabets["decode"])
             decoded_messages.append(decoded_message)
+            frequencies = calculate_letter_frequency(decoded_message)
 
-            print(str(decode_alphabets["decode"]).replace("'",""))
+            print(str(decode_alphabets["decode"]).replace("'","").replace(": ","="))
             print(f' --- {decoded_message}')
+            print(str(frequencies).replace("'","").replace(": ","="))

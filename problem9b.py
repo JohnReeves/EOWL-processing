@@ -32,7 +32,9 @@ morse_code_dict = {
 }
 morse_decoding = {v: k for k, v in morse_code_dict.items()}
 
+# wheatstone & cooke only used twenty letters 
 # missing letters c, j, q, v, z, 1, 2, 3, 4, 5, 6, 7
+# however, there are 96 distinct quintuples in the cipher text!
 wheatstone_code_dict = { 
     'A': '/|||\\', 'B': '/||\\|', 'C': '||/||', 'D': '|/||\\', 'E': '/|\\||', 'F': '|/|\|', 'G': '||/|\\',
     'H': '/\\|||', 'I': '|/\\||', 'J': '|/|||', 'K': '||/\\|', 'L': '|||/\\', 'M': '\\/|||', 'N': '|\\/||',
